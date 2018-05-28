@@ -3,16 +3,31 @@
 //
 // **License:** MIT
 
-import { isIP } from 'net'
-
-export class Visitor {
+/**
+ * BufferVisitor is a visit tool to manipulate buffer.
+ */
+export class BufferVisitor {
   start: number
   end: number
-  constructor (start: number = 0, end: number = 0) {
+  readonly buf: Buffer
+  constructor (buf: Buffer, start: number = 0, end: number = 0) {
     this.start = start
     this.end = end > start ? end : start
+    this.buf = buf
   }
 
+  /**
+   * return the underlying buffer length
+   */
+  get length () {
+    return this.buf.length
+  }
+
+  /**
+   * Reset visitor' start and end value.
+   * @param start
+   * @param end
+   */
   reset (start: number = 0, end: number = 0): this {
     this.start = start
     if (end >= this.start) {
@@ -23,24 +38,22 @@ export class Visitor {
     return this
   }
 
+  /**
+   * consume some bytes.
+   * @param steps steps to walk
+   */
   walk (steps: number): this {
     this.start = this.end
     this.end += steps
     return this
   }
-}
 
-export class BufferVisitor extends Visitor {
-  readonly buf: Buffer
-  constructor (buf: Buffer, start: number = 0, end: number = 0) {
-    super(start, end)
-    this.buf = buf
-  }
-
-  get length () {
-    return this.buf.length
-  }
-
+  /**
+   * The buffer should have remaining the "steps" of bytes to consume,
+   * otherwise it will throw an error with given message.
+   * @param steps steps to consume.
+   * @param message message to throw.
+   */
   mustHas (steps: number, message: string = 'Too few bytes to parse.'): this {
     const requested = this.end + steps
     if (requested > this.buf.length) {
@@ -53,246 +66,14 @@ export class BufferVisitor extends Visitor {
     return this
   }
 
+  /**
+   * Check the remaining bytes with bufferVisitor.mustHas method and then walk.
+   * @param steps steps to consume.
+   * @param message message to throw.
+   */
   mustWalk (steps: number, message?: string): this {
     this.mustHas(steps, message)
     this.walk(steps)
     return this
   }
 }
-
-export function bytesFromIP (ip: string): Buffer | null {
-  switch (isIP(ip)) {
-  case 4:
-    return Buffer.from(ip.split('.').map((val) => parseInt(val, 10)))
-  case 6:
-    const vals = ip.split(':')
-    const buf = Buffer.alloc(16)
-    let offset = 0
-    if (vals[vals.length - 1] === '') {
-      vals[vals.length - 1] = '0'
-    }
-    for (let i = 0; i < vals.length; i++) {
-      if (vals[i] === '') {
-        if (i + 1 < vals.length && vals[i + 1] !== '') {
-          // reset offset for non-zero values
-          offset = 16 - (vals.length - i - 1) * 2
-        }
-        // skip zero bytes
-        continue
-      }
-      buf.writeUInt16BE(parseInt(vals[i], 16), offset)
-      offset += 2
-    }
-    return buf
-  default:
-   return null
-  }
-}
-
-// Converts 4-bytes into an IPv4 string representation or 16-bytes into
-// an IPv6 string representation. The bytes must be in network order.
-export function bytesToIP (bytes: Buffer): string {
-  switch (bytes.length) {
-  case 4:
-    return [bytes[0], bytes[1], bytes[2], bytes[3]].join('.')
-  case 16:
-    const ip = []
-    let zeroAt = -1
-    let zeroLen = 0
-    let maxAt = -1
-    let maxLen = 0
-
-    for (let i = 0; i < bytes.length; i += 2) {
-      const hex = (bytes[i] << 8) | bytes[i + 1]
-      if (hex === 0) {
-        zeroLen++
-        if (zeroAt === -1) {
-          zeroAt = ip.length
-        }
-        if (zeroLen > maxLen) {
-          maxLen = zeroLen
-          maxAt = zeroAt
-        }
-      } else {
-        zeroAt = -1
-        zeroLen = 0
-      }
-      ip.push(hex.toString(16))
-    }
-
-    if (maxLen > 0) {
-      let padding = ''
-      const rest = ip.slice(maxAt + maxLen)
-      ip.length = maxAt
-      if (ip.length === 0) {
-        padding += ':'
-      }
-      if (rest.length === 0) {
-        padding += ':'
-      }
-      ip.push(padding, ...rest)
-    }
-    return ip.join(':')
-  default:
-    return ''
-  }
-}
-
-const oids: { [index: string]: string } = Object.create(null)
-const oidReg = /^[0-9.]+$/
-
-// getOID returns oid or ''
-export function getOID (nameOrId: string): string {
-  if (oidReg.test(nameOrId) && oids[nameOrId] !== '') {
-    return nameOrId
-  }
-  return oids[nameOrId] == null ? '' : oids[nameOrId]
-}
-
-// getOIDName return name or oid
-export function getOIDName (nameOrId: string): string {
-  if (!oidReg.test(nameOrId) && oids[nameOrId] !== '') {
-    return nameOrId
-  }
-  return oids[nameOrId] == null ? nameOrId : oids[nameOrId]
-}
-
-// set id to name mapping and name to id mapping
-function initOID (id: string, name: string, unidirection: boolean = false) {
-  oids[id] = name
-
-  if (!unidirection) {
-    oids[name] = id
-  }
-}
-
-// algorithm OIDs
-initOID('1.2.840.113549.1.1.1', 'rsaEncryption')
-initOID('1.2.840.113549.1.1.4', 'md5WithRsaEncryption')
-initOID('1.2.840.113549.1.1.5', 'sha1WithRsaEncryption')
-initOID('1.2.840.113549.1.1.8', 'mgf1')
-initOID('1.2.840.113549.1.1.10', 'RSASSA-PSS')
-initOID('1.2.840.113549.1.1.11', 'sha256WithRsaEncryption')
-initOID('1.2.840.113549.1.1.12', 'sha384WithRsaEncryption')
-initOID('1.2.840.113549.1.1.13', 'sha512WithRsaEncryption')
-
-initOID('1.2.840.10045.2.1', 'ecEncryption') // ECDSA and ECDH Public Key
-initOID('1.2.840.10045.4.1', 'ecdsaWithSha1')
-initOID('1.2.840.10045.4.3.2', 'ecdsaWithSha256')
-initOID('1.2.840.10045.4.3.3', 'ecdsaWithSha384')
-initOID('1.2.840.10045.4.3.4', 'ecdsaWithSha512')
-
-initOID('1.2.840.10040.4.3', 'dsaWithSha1')
-initOID('2.16.840.1.101.3.4.3.2', 'dsaWithSha256')
-
-initOID('1.3.14.3.2.7', 'desCBC')
-initOID('1.3.14.3.2.26', 'sha1')
-initOID('2.16.840.1.101.3.4.2.1', 'sha256')
-initOID('2.16.840.1.101.3.4.2.2', 'sha384')
-initOID('2.16.840.1.101.3.4.2.3', 'sha512')
-initOID('1.2.840.113549.2.5', 'md5')
-
-// Algorithm Identifiers for Ed25519, Ed448, X25519 and X448 for use in the Internet X.509 Public Key Infrastructure
-// https://tools.ietf.org/html/draft-ietf-curdle-pkix-10
-initOID('1.3.101.110', 'X25519')
-initOID('1.3.101.111', 'X448')
-initOID('1.3.101.112', 'Ed25519')
-initOID('1.3.101.113', 'Ed448')
-
-// pkcs#7 content types
-initOID('1.2.840.113549.1.7.1', 'data')
-initOID('1.2.840.113549.1.7.2', 'signedData')
-initOID('1.2.840.113549.1.7.3', 'envelopedData')
-initOID('1.2.840.113549.1.7.4', 'signedAndEnvelopedData')
-initOID('1.2.840.113549.1.7.5', 'digestedData')
-initOID('1.2.840.113549.1.7.6', 'encryptedData')
-
-// pkcs#9 oids
-initOID('1.2.840.113549.1.9.1', 'emailAddress')
-initOID('1.2.840.113549.1.9.2', 'unstructuredName')
-initOID('1.2.840.113549.1.9.3', 'contentType')
-initOID('1.2.840.113549.1.9.4', 'messageDigest')
-initOID('1.2.840.113549.1.9.5', 'signingTime')
-initOID('1.2.840.113549.1.9.6', 'counterSignature')
-initOID('1.2.840.113549.1.9.7', 'challengePassword')
-initOID('1.2.840.113549.1.9.8', 'unstructuredAddress')
-initOID('1.2.840.113549.1.9.14', 'extensionRequest')
-initOID('1.2.840.113549.1.9.20', 'friendlyName')
-initOID('1.2.840.113549.1.9.21', 'localKeyId')
-initOID('1.2.840.113549.1.9.22.1', 'x509Certificate')
-
-// pkcs#12 safe bags
-initOID('1.2.840.113549.1.12.10.1.1', 'keyBag')
-initOID('1.2.840.113549.1.12.10.1.2', 'pkcs8ShroudedKeyBag')
-initOID('1.2.840.113549.1.12.10.1.3', 'certBag')
-initOID('1.2.840.113549.1.12.10.1.4', 'crlBag')
-initOID('1.2.840.113549.1.12.10.1.5', 'secretBag')
-initOID('1.2.840.113549.1.12.10.1.6', 'safeContentsBag')
-
-// password-based-encryption for pkcs#12
-initOID('1.2.840.113549.1.5.13', 'pkcs5PBES2')
-initOID('1.2.840.113549.1.5.12', 'pkcs5PBKDF2')
-
-// hmac OIDs
-initOID('1.2.840.113549.2.7', 'hmacWithSha1')
-initOID('1.2.840.113549.2.9', 'hmacWithSha256')
-initOID('1.2.840.113549.2.10', 'hmacWithSha384')
-initOID('1.2.840.113549.2.11', 'hmacWithSha512')
-
-// symmetric key algorithm oids
-initOID('1.2.840.113549.3.7', '3desCBC')
-initOID('2.16.840.1.101.3.4.1.2', 'aesCBC128')
-initOID('2.16.840.1.101.3.4.1.42', 'aesCBC256')
-
-// certificate issuer/subject OIDs
-initOID('2.5.4.3', 'commonName')
-initOID('2.5.4.5', 'serialName')
-initOID('2.5.4.6', 'countryName')
-initOID('2.5.4.7', 'localityName')
-initOID('2.5.4.8', 'stateOrProvinceName')
-initOID('2.5.4.10', 'organizationName')
-initOID('2.5.4.11', 'organizationalUnitName')
-initOID('2.5.4.15', 'businessCategory')
-
-// X.509 extension OIDs
-initOID('2.16.840.1.113730.1.1', 'nsCertType')
-initOID('2.5.29.2', 'keyAttributes', true) // obsolete, use .37 or .15
-initOID('2.5.29.4', 'keyUsageRestriction', true) // obsolete, use .37 or .15
-initOID('2.5.29.6', 'subtreesConstraint', true) // obsolete, use .30
-initOID('2.5.29.9', 'subjectDirectoryAttributes', true)
-initOID('2.5.29.14', 'subjectKeyIdentifier')
-initOID('2.5.29.15', 'keyUsage')
-initOID('2.5.29.16', 'privateKeyUsagePeriod', true)
-initOID('2.5.29.17', 'subjectAltName')
-initOID('2.5.29.18', 'issuerAltName')
-initOID('2.5.29.19', 'basicConstraints')
-initOID('2.5.29.20', 'cRLNumber', true)
-initOID('2.5.29.21', 'cRLReason', true)
-initOID('2.5.29.22', 'expirationDate', true)
-initOID('2.5.29.23', 'instructionCode', true)
-initOID('2.5.29.24', 'invalidityDate', true)
-initOID('2.5.29.27', 'deltaCRLIndicator', true)
-initOID('2.5.29.28', 'issuingDistributionPoint', true)
-initOID('2.5.29.29', 'certificateIssuer', true)
-initOID('2.5.29.30', 'nameConstraints', true)
-initOID('2.5.29.31', 'cRLDistributionPoints')
-initOID('2.5.29.32', 'certificatePolicies')
-initOID('2.5.29.33', 'policyMappings', true)
-initOID('2.5.29.35', 'authorityKeyIdentifier')
-initOID('2.5.29.36', 'policyConstraints', true)
-initOID('2.5.29.37', 'extKeyUsage')
-initOID('2.5.29.46', 'freshestCRL', true)
-initOID('2.5.29.54', 'inhibitAnyPolicy', true)
-
-// extKeyUsage purposes
-initOID('1.3.6.1.4.1.311.60.2.1.2', 'jurisdictionST')
-initOID('1.3.6.1.4.1.311.60.2.1.3', 'jurisdictionC')
-initOID('1.3.6.1.4.1.11129.2.4.2', 'timestampList')
-initOID('1.3.6.1.5.5.7.1.1', 'authorityInfoAccess')
-initOID('1.3.6.1.5.5.7.3.1', 'serverAuth')
-initOID('1.3.6.1.5.5.7.3.2', 'clientAuth')
-initOID('1.3.6.1.5.5.7.3.3', 'codeSigning')
-initOID('1.3.6.1.5.5.7.3.4', 'emailProtection')
-initOID('1.3.6.1.5.5.7.3.8', 'timeStamping')
-initOID('1.3.6.1.5.5.7.48.1', 'authorityInfoAccessOcsp')
-initOID('1.3.6.1.5.5.7.48.2', 'authorityInfoAccessIssuers')

@@ -1,11 +1,7 @@
 'use strict'
-// **Github:** https://github.com/fidm/x509
+// **Github:** https://github.com/fidm/asn1
 //
 // **License:** MIT
-
-// Implements the PEM data encoding, which originated in Privacy
-// Enhanced Mail. The most common use of PEM encoding today is in TLS keys and
-// certificates. See RFC 1421.
 
 import { inspect } from 'util'
 
@@ -15,19 +11,34 @@ const pemEnd = '-----END '
 const pemEndOfLine = '-----'
 const procType = 'Proc-Type'
 
-// A PEM represents a PEM encoded structure.
-//
-// The encoded form is:
-//    -----BEGIN Type-----
-//    Headers
-//    base64-encoded Bytes
-//    -----END Type-----
-//
-// Headers:
-//   Proc-Type: 4,ENCRYPTED
-//   DEK-Info: DES-EDE3-CBC,29DE8F99F382D122
+/**
+ * Implements the PEM data encoding, which originated in Privacy
+ * Enhanced Mail. The most common use of PEM encoding today is in TLS keys and
+ * certificates. See RFC 1421.
+ *
+ * A PEM represents a PEM encoded structure.
+ *
+ * The encoded form is:
+ * ```
+ * -----BEGIN Type-----
+ * Headers
+ * base64-encoded Bytes
+ * -----END Type-----
+ * ```
+ *
+ * Headers like:
+ * ```
+ * Proc-Type: 4,ENCRYPTED
+ * DEK-Info: DES-EDE3-CBC,29DE8F99F382D122
+ * ```
+ */
+
 export class PEM {
-  // parse PEM formatted blocks form buffer, returns one or more blocks.
+  /**
+   * Parse PEM formatted buffer, returns one or more PEM object.
+   * If there is no PEM object, it will throw error.
+   * @param data buffer to parse.
+   */
   static parse (data: Buffer): PEM[] {
     const res = []
     const lines = data.toString('utf8').split('\n').map((s) => s.trim()).filter((s) => s !== '')
@@ -40,8 +51,15 @@ export class PEM {
     return res
   }
 
-  type: string // The type, taken from the preamble (i.e. "RSA PRIVATE KEY").
-  body: Buffer // The decoded bytes of the contents. Typically a DER encoded ASN.1 structure.
+  /**
+   * The type, taken from the preamble (i.e. "RSA PRIVATE KEY").
+   */
+  type: string
+
+  /**
+   * The decoded bytes of the contents. Typically a DER encoded ASN.1 structure.
+   */
+  body: Buffer
   private headers: { [index: string]: string } // Optional headers.
   constructor (type: string, body: Buffer) {
     this.type = type
@@ -49,15 +67,24 @@ export class PEM {
     this.headers = Object.create(null)
   }
 
+  /**
+   * Return exists Proc-Type header or empty string
+   */
   get procType (): string {
     return this.getHeader(procType)
   }
 
+  /**
+   * Return a header or empty string with given key.
+   */
   getHeader (key: string): string {
     const val = this.headers[key]
     return val == null ? '' : val
   }
 
+  /**
+   * Set a header with given key/value.
+   */
   setHeader (key: string, val: string) {
     if (key.includes(':')) {
       throw new Error('pem: cannot encode a header key that contains a colon')
@@ -68,6 +95,9 @@ export class PEM {
     this.headers[key] = val
   }
 
+  /**
+   * Encode to PEM formatted string.
+   */
   toString (): string {
     let rVal = pemStart + this.type + pemEndOfLine + '\n'
     const headers = Object.keys(this.headers)
@@ -98,10 +128,23 @@ export class PEM {
     return rVal
   }
 
+  /**
+   * Encode to PEM formatted buffer.
+   */
+  toBuffer (): Buffer {
+    return Buffer.from(this.toString(), 'utf8')
+  }
+
+  /**
+   * Returns the body.
+   */
   valueOf () {
     return this.body
   }
 
+  /**
+   * Return a friendly JSON object for debuging.
+   */
   toJSON (): any {
     return {
       type: this.type,
@@ -110,7 +153,7 @@ export class PEM {
     }
   }
 
-  [inspect.custom] (_depth: any, options: any): string {
+  protected [inspect.custom] (_depth: any, options: any): string {
     return `<${this.constructor.name} ${inspect(this.toJSON(), options)}>`
   }
 }

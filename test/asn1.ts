@@ -1,13 +1,12 @@
 'use strict'
-// **Github:** https://github.com/fidm/x509
+// **Github:** https://github.com/fidm/asn1
 //
 // **License:** MIT
 
 import fs from 'fs'
 import { strictEqual, ok } from 'assert'
 import { suite, it } from 'tman'
-import { PEM } from '../src/pem'
-import { ASN1, Class, Tag } from '../src/asn1'
+import { PEM, ASN1, Class, Tag } from '../src/index'
 
 suite('ASN1', function () {
   it('should work', function () {

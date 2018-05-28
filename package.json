@@ -1,6 +1,6 @@
 {
-  "name": "@fidm/x509",
-  "description": "Pure JavaScript X509 certificate tools for Node.js, includes PEM, ASN1 with DER.",
+  "name": "@fidm/asn1",
+  "description": "ASN1/DER, PEM for Node.js",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
@@ -10,38 +10,35 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:fidm/x509.git"
+    "url": "git@github.com:fidm/asn1.git"
   },
-  "homepage": "https://github.com/fidm/x509",
+  "homepage": "https://github.com/fidm/asn1",
   "engines": {
     "node": ">= 8"
   },
   "keywords": [
-    "x509",
-    "certificate",
-    "tls",
     "asn1",
     "pem",
-    "pki",
-    "ed25519",
     "JavaScript",
     "node"
   ],
-  "dependencies": {
-    "tweetnacl": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^10.1.2",
+    "@types/node": "^10.1.3",
+    "istanbul": "^1.1.0-alpha.1",
     "tman": "^1.7.4",
     "ts-node": "^6.0.5",
     "tslint": "^5.10.0",
     "tslint-eslint-rules": "^5.3.1",
+    "typedoc": "^0.11.1",
     "typescript": "^2.8.3"
   },
   "scripts": {
+    "build": "rm -rf build && tsc",
+    "docs": "rm -rf docs && typedoc --mode modules --out docs",
     "test": "tman -r ts-node/register 'test/**/*.ts'",
-    "lint": "tslint -p tsconfig.json -t stylish 'src/**/*.ts' 'test/**/*.ts'",
-    "build": "rm -rf build && tsc"
+    "test-cov": "istanbul cover _tman -- 'test/**/*.ts' -r ts-node/register",
+    "lint": "tslint -p tsconfig.json -t stylish 'src/**/*.ts' 'test/**/*.ts'"
   },
   "files": [
     "build",
