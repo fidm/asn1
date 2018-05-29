@@ -1,10 +1,10 @@
 {
   "name": "@fidm/asn1",
-  "description": "ASN1/DER, PEM for Node.js",
+  "description": "ASN.1/DER, PEM for Node.js",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "license": "MIT",
@@ -18,6 +18,7 @@
   },
   "keywords": [
     "asn1",
+    "ASN.1",
     "pem",
     "JavaScript",
     "node"

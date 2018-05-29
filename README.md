@@ -1,5 +1,5 @@
 # [@fidm/asn1](https://github.com/fidm/asn1)
-ASN1/DER, PEM for Node.js.
+ASN.1/DER, PEM for Node.js.
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
@@ -20,7 +20,7 @@ https://fidm.github.io/asn1/
 ### Parse a private key from PEM file with ASN.1 Template
 ```js
 const fs = require('fs')
-const { PEM, ASN1, Class, Tag } = require('../src/index')
+const { PEM, ASN1, Class, Tag } = require('@fidm/asn1')
 
 // ASN.1 Template https://tools.ietf.org/html/rfc5208
 const privateKeyValidator = {
