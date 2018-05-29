@@ -35,7 +35,7 @@
   },
   "scripts": {
     "build": "rm -rf build && tsc",
-    "docs": "rm -rf docs && typedoc --mode modules --out docs",
+    "docs": "rm -rf docs && typedoc --out docs && touch docs/.nojekyll",
     "test": "tman -r ts-node/register 'test/**/*.ts'",
     "test-cov": "istanbul cover _tman -- 'test/**/*.ts' -r ts-node/register",
     "lint": "tslint -p tsconfig.json -t stylish 'src/**/*.ts' 'test/**/*.ts'"

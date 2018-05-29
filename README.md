@@ -5,18 +5,100 @@ ASN1/DER, PEM for Node.js.
 [![Build Status][travis-image]][travis-url]
 [![Downloads][downloads-image]][downloads-url]
 
-## NPM
+## Install
 
 ```
-npm install @fidm/asn1
+npm i --save @fidm/asn1
 ```
 
-## API Document
+## Documentation
 
 https://fidm.github.io/asn1/
 
-## example
+## Example
 
+### Parse a private key from PEM file with ASN.1 Template
+```js
+const fs = require('fs')
+const { PEM, ASN1, Class, Tag } = require('../src/index')
+
+// ASN.1 Template https://tools.ietf.org/html/rfc5208
+const privateKeyValidator = {
+  name: 'PrivateKeyInfo',
+  class: Class.UNIVERSAL,
+  tag: Tag.SEQUENCE,
+  capture: 'privateKeyInfo',
+  value: [{
+    name: 'PrivateKeyInfo.Version',
+    class: Class.UNIVERSAL,
+    tag: Tag.INTEGER,
+    capture: 'privateKeyVersion'
+  }, {
+    name: 'PrivateKeyInfo.AlgorithmIdentifier',
+    class: Class.UNIVERSAL,
+    tag: Tag.SEQUENCE,
+    value: [{
+      name: 'PrivateKeyAlgorithmIdentifier.algorithm',
+      class: Class.UNIVERSAL,
+      tag: Tag.OID,
+      capture: 'privateKeyOID'
+    }]
+  }, {
+    name: 'PrivateKeyInfo.PrivateKey',
+    class: Class.UNIVERSAL,
+    tag: Tag.OCTETSTRING,
+    capture: 'privateKey'
+  }]
+}
+
+const rootkey = PEM.parse(fs.readFileSync('./test/cert/rootkey.pem'))[0]
+const captures = ASN1.parseDERWithTemplate(rootkey.body, privateKeyValidator)
+console.log(captures)
+// { privateKeyInfo:
+//   <ASN1 { class: 'UNIVERSAL',
+//     tag: 'SEQUENCE',
+//     value:
+//      [ { class: 'UNIVERSAL', tag: 'INTEGER', value: 0 },
+//        { class: 'UNIVERSAL',
+//          tag: 'SEQUENCE',
+//          value:
+//           [ { class: 'UNIVERSAL', tag: 'OID', value: '1.2.840.113549.1.1.1' },
+//             { class: 'UNIVERSAL', tag: 'NULL', value: null } ] },
+//        { class: 'UNIVERSAL',
+//          tag: 'OCTETSTRING',
+//          value:
+//           <Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... > } ] }>,
+//  privateKeyVersion: <ASN1 { class: 'UNIVERSAL', tag: 'INTEGER', value: 0 }>,
+//  privateKeyOID:
+//   <ASN1 { class: 'UNIVERSAL', tag: 'OID', value: '1.2.840.113549.1.1.1' }>,
+//  privateKey:
+//   <ASN1 { class: 'UNIVERSAL',
+//     tag: 'OCTETSTRING',
+//     value:
+//      <Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... > }> }
+```
+
+### Build PKCS#8 private key ASN1 object from PKCS#1 private key ASN1 object
+```js
+const { ASN1, Class, Tag } = require('@fidm/asn1')
+
+const rsaPrivateKeyASN1 = getSomeRSAPrivateKeyASN1()
+const privateKeyASN1 = ASN1.Seq([
+  // Version (INTEGER)
+  rsaPrivateKeyASN1.value[0],
+  // AlgorithmIdentifier
+  ASN1.Seq([
+    // algorithm
+    ASN1.OID('1.2.840.113549.1.1.1'),
+    // optional parameters
+    ASN1.Null(),
+  ]),
+  // PrivateKey
+  new ASN1(Class.UNIVERSAL, Tag.OCTETSTRING, rsaPrivateKeyASN1.DER),
+])
+```
+
+### Parse a certificate from PEM file
 ```js
 const fs = require('fs')
 const { PEM, ASN1 } = require('@fidm/asn1')

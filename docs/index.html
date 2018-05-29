@@ -64,13 +64,94 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="x509">x509</h1>
+				<h1 id="-fidm-asn1"><a href="https://github.com/fidm/asn1">@fidm/asn1</a></h1>
 				<p>ASN1/DER, PEM for Node.js.</p>
 				<p><a href="https://www.npmjs.com/package/@fidm/asn1"><img src="https://img.shields.io/npm/v/@fidm/asn1.svg" alt="NPM version"></a>
 					<a href="https://travis-ci.org/fidm/asn1"><img src="http://img.shields.io/travis/fidm/asn1.svg" alt="Build Status"></a>
 				<a href="https://npmjs.org/package/@fidm/asn1"><img src="https://img.shields.io/npm/dm/@fidm/asn1.svg?style=flat-square" alt="Downloads"></a></p>
-				<h2 id="api-document">API Document</h2>
-				<h2 id="example">example</h2>
+				<h2 id="install">Install</h2>
+				<pre><code><span class="hljs-built_in">npm</span> i --save @fidm/asn1
+</code></pre><h2 id="documentation">Documentation</h2>
+				<p><a href="https://fidm.github.io/asn1/">https://fidm.github.io/asn1/</a></p>
+				<h2 id="example">Example</h2>
+				<h3 id="parse-a-private-key-from-pem-file-with-asn-1-template">Parse a private key from PEM file with ASN.1 Template</h3>
+				<pre><code class="lang-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
+<span class="hljs-keyword">const</span> { PEM, ASN1, Class, Tag } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../src/index'</span>)
+
+<span class="hljs-comment">// ASN.1 Template https://tools.ietf.org/html/rfc5208</span>
+<span class="hljs-keyword">const</span> privateKeyValidator = {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">'PrivateKeyInfo'</span>,
+  <span class="hljs-attr">class</span>: Class.UNIVERSAL,
+  <span class="hljs-attr">tag</span>: Tag.SEQUENCE,
+  <span class="hljs-attr">capture</span>: <span class="hljs-string">'privateKeyInfo'</span>,
+  <span class="hljs-attr">value</span>: [{
+    <span class="hljs-attr">name</span>: <span class="hljs-string">'PrivateKeyInfo.Version'</span>,
+    <span class="hljs-attr">class</span>: Class.UNIVERSAL,
+    <span class="hljs-attr">tag</span>: Tag.INTEGER,
+    <span class="hljs-attr">capture</span>: <span class="hljs-string">'privateKeyVersion'</span>
+  }, {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">'PrivateKeyInfo.AlgorithmIdentifier'</span>,
+    <span class="hljs-attr">class</span>: Class.UNIVERSAL,
+    <span class="hljs-attr">tag</span>: Tag.SEQUENCE,
+    <span class="hljs-attr">value</span>: [{
+      <span class="hljs-attr">name</span>: <span class="hljs-string">'PrivateKeyAlgorithmIdentifier.algorithm'</span>,
+      <span class="hljs-attr">class</span>: Class.UNIVERSAL,
+      <span class="hljs-attr">tag</span>: Tag.OID,
+      <span class="hljs-attr">capture</span>: <span class="hljs-string">'privateKeyOID'</span>
+    }]
+  }, {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">'PrivateKeyInfo.PrivateKey'</span>,
+    <span class="hljs-attr">class</span>: Class.UNIVERSAL,
+    <span class="hljs-attr">tag</span>: Tag.OCTETSTRING,
+    <span class="hljs-attr">capture</span>: <span class="hljs-string">'privateKey'</span>
+  }]
+}
+
+<span class="hljs-keyword">const</span> rootkey = PEM.parse(fs.readFileSync(<span class="hljs-string">'./test/cert/rootkey.pem'</span>))[<span class="hljs-number">0</span>]
+<span class="hljs-keyword">const</span> captures = ASN1.parseDERWithTemplate(rootkey.body, privateKeyValidator)
+<span class="hljs-built_in">console</span>.log(captures)
+<span class="hljs-comment">// { privateKeyInfo:</span>
+<span class="hljs-comment">//   &lt;ASN1 { class: 'UNIVERSAL',</span>
+<span class="hljs-comment">//     tag: 'SEQUENCE',</span>
+<span class="hljs-comment">//     value:</span>
+<span class="hljs-comment">//      [ { class: 'UNIVERSAL', tag: 'INTEGER', value: 0 },</span>
+<span class="hljs-comment">//        { class: 'UNIVERSAL',</span>
+<span class="hljs-comment">//          tag: 'SEQUENCE',</span>
+<span class="hljs-comment">//          value:</span>
+<span class="hljs-comment">//           [ { class: 'UNIVERSAL', tag: 'OID', value: '1.2.840.113549.1.1.1' },</span>
+<span class="hljs-comment">//             { class: 'UNIVERSAL', tag: 'NULL', value: null } ] },</span>
+<span class="hljs-comment">//        { class: 'UNIVERSAL',</span>
+<span class="hljs-comment">//          tag: 'OCTETSTRING',</span>
+<span class="hljs-comment">//          value:</span>
+<span class="hljs-comment">//           &lt;Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... &gt; } ] }&gt;,</span>
+<span class="hljs-comment">//  privateKeyVersion: &lt;ASN1 { class: 'UNIVERSAL', tag: 'INTEGER', value: 0 }&gt;,</span>
+<span class="hljs-comment">//  privateKeyOID:</span>
+<span class="hljs-comment">//   &lt;ASN1 { class: 'UNIVERSAL', tag: 'OID', value: '1.2.840.113549.1.1.1' }&gt;,</span>
+<span class="hljs-comment">//  privateKey:</span>
+<span class="hljs-comment">//   &lt;ASN1 { class: 'UNIVERSAL',</span>
+<span class="hljs-comment">//     tag: 'OCTETSTRING',</span>
+<span class="hljs-comment">//     value:</span>
+<span class="hljs-comment">//      &lt;Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... &gt; }&gt; }</span>
+</code></pre>
+				<h3 id="build-pkcs-8-private-key-asn1-object-from-pkcs-1-private-key-asn1-object">Build PKCS#8 private key ASN1 object from PKCS#1 private key ASN1 object</h3>
+				<pre><code class="lang-js"><span class="hljs-keyword">const</span> { ASN1, Class, Tag } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
+
+<span class="hljs-keyword">const</span> rsaPrivateKeyASN1 = getSomeRSAPrivateKeyASN1()
+<span class="hljs-keyword">const</span> privateKeyASN1 = ASN1.Seq([
+  <span class="hljs-comment">// Version (INTEGER)</span>
+  rsaPrivateKeyASN1.value[<span class="hljs-number">0</span>],
+  <span class="hljs-comment">// AlgorithmIdentifier</span>
+  ASN1.Seq([
+    <span class="hljs-comment">// algorithm</span>
+    ASN1.OID(<span class="hljs-string">'1.2.840.113549.1.1.1'</span>),
+    <span class="hljs-comment">// optional parameters</span>
+    ASN1.Null(),
+  ]),
+  <span class="hljs-comment">// PrivateKey</span>
+  <span class="hljs-keyword">new</span> ASN1(Class.UNIVERSAL, Tag.OCTETSTRING, rsaPrivateKeyASN1.DER),
+])
+</code></pre>
+				<h3 id="parse-a-certificate-from-pem-file">Parse a certificate from PEM file</h3>
 				<pre><code class="lang-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
 <span class="hljs-keyword">const</span> { PEM, ASN1 } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
 
