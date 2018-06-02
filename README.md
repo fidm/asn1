@@ -15,6 +15,10 @@ npm i --save @fidm/asn1
 
 https://fidm.github.io/asn1/
 
+## Dependents
+
+[@fidm/x509](https://github.com/fidm/x509)
+
 ## Example
 
 ### Parse a private key from PEM file with ASN.1 Template
