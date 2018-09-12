@@ -41,7 +41,9 @@ export class PEM {
    */
   static parse (data: Buffer): PEM[] {
     const res = []
-    const lines = data.toString('utf8').split('\n').map((s) => s.trim()).filter((s) => s !== '' && !s.startsWith('#'))
+    const lines = data.toString('utf8').split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s !== '' && !s.startsWith('#'))
     while (lines.length > 0) {
       res.push(parse(lines))
     }

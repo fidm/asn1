@@ -70,14 +70,13 @@
 					<a href="https://travis-ci.org/fidm/asn1"><img src="http://img.shields.io/travis/fidm/asn1.svg" alt="Build Status"></a>
 				<a href="https://npmjs.org/package/@fidm/asn1"><img src="https://img.shields.io/npm/dm/@fidm/asn1.svg?style=flat-square" alt="Downloads"></a></p>
 				<h2 id="install">Install</h2>
-				<pre><code><span class="hljs-built_in">npm</span> i --save @fidm/asn1
-</code></pre><h2 id="documentation">Documentation</h2>
+				<pre><code><span class="hljs-built_in">npm</span> i --save @fidm/asn1</code></pre><h2 id="documentation">Documentation</h2>
 				<p><a href="https://fidm.github.io/asn1/">https://fidm.github.io/asn1/</a></p>
 				<h2 id="dependents">Dependents</h2>
 				<p><a href="https://github.com/fidm/x509">@fidm/x509</a></p>
 				<h2 id="example">Example</h2>
 				<h3 id="parse-a-private-key-from-pem-file-with-asn-1-template">Parse a private key from PEM file with ASN.1 Template</h3>
-				<pre><code class="lang-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
 <span class="hljs-keyword">const</span> { PEM, ASN1, Class, Tag } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
 
 <span class="hljs-comment">// ASN.1 Template https://tools.ietf.org/html/rfc5208</span>
@@ -133,10 +132,9 @@
 <span class="hljs-comment">//   &lt;ASN1 { class: 'UNIVERSAL',</span>
 <span class="hljs-comment">//     tag: 'OCTETSTRING',</span>
 <span class="hljs-comment">//     value:</span>
-<span class="hljs-comment">//      &lt;Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... &gt; }&gt; }</span>
-</code></pre>
+<span class="hljs-comment">//      &lt;Buffer 30 82 04 a5 02 01 00 02 82 01 01 00 bf 9a 15 d6 cd cd ba ce d2 20 d8 3b a2 6b b9 03 1b 9e 12 02 bd ee 68 79 3d 4d e1 81 9a 65 89 21 5a 11 29 8b da a2 ... &gt; }&gt; }</span></code></pre>
 				<h3 id="build-pkcs-8-private-key-asn1-object-from-pkcs-1-private-key-asn1-object">Build PKCS#8 private key ASN1 object from PKCS#1 private key ASN1 object</h3>
-				<pre><code class="lang-js"><span class="hljs-keyword">const</span> { ASN1, Class, Tag } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> { ASN1, Class, Tag } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
 
 <span class="hljs-keyword">const</span> rsaPrivateKeyASN1 = getSomeRSAPrivateKeyASN1()
 <span class="hljs-keyword">const</span> privateKeyASN1 = ASN1.Seq([
@@ -151,10 +149,9 @@
   ]),
   <span class="hljs-comment">// PrivateKey</span>
   <span class="hljs-keyword">new</span> ASN1(Class.UNIVERSAL, Tag.OCTETSTRING, rsaPrivateKeyASN1.DER),
-])
-</code></pre>
+])</code></pre>
 				<h3 id="parse-a-certificate-from-pem-file">Parse a certificate from PEM file</h3>
-				<pre><code class="lang-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
 <span class="hljs-keyword">const</span> { PEM, ASN1 } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'@fidm/asn1'</span>)
 
 <span class="hljs-keyword">const</span> pems = PEM.parse(fs.readFileSync(<span class="hljs-string">'./test/cert/github.crt'</span>))
@@ -432,8 +429,7 @@
 <span class="hljs-comment">//         BitString {</span>
 <span class="hljs-comment">//           buf:</span>
 <span class="hljs-comment">//            &lt;Buffer 70 0f 5a 96 a7 58 e5 bf 8a 9d a8 27 98 2b 00 7f 26 a9 07 da ba 7b 82 54 4f af 69 cf bc f2 59 03 2b f2 d5 74 58 25 d8 1e a4 20 76 62 60 29 73 2a d7 dc ... &gt;,</span>
-<span class="hljs-comment">//           bitLen: 2048 } } ] }&gt;</span>
-</code></pre>
+<span class="hljs-comment">//           bitLen: 2048 } } ] }&gt;</span></code></pre>
 				<h3 id="license">License</h3>
 				<p>@fidm/asn1 is licensed under the <a href="https://github.com/fidm/asn1/blob/master/LICENSE">MIT</a> license.
 				Copyright &copy; 2018 FIdM.</p>
