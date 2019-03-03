@@ -387,7 +387,7 @@ console.log(asn1)
 
 ### License
 @fidm/asn1 is licensed under the [MIT](https://github.com/fidm/asn1/blob/master/LICENSE) license.
-Copyright &copy; 2018 FIdM.
+Copyright &copy; 2018-2019 FIdM.
 
 [npm-url]: https://www.npmjs.com/package/@fidm/asn1
 [npm-image]: https://img.shields.io/npm/v/@fidm/asn1.svg
