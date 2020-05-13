@@ -961,7 +961,7 @@ export class ASN1 {
 
     const valueLenBytes = getValueLengthByte(this.bytes.length)
     const buf = Buffer.allocUnsafe(2 + valueLenBytes + this.bytes.length)
-    buf.writeInt8(b1, 0)
+    buf.writeUInt8(b1, 0)
     if (valueLenBytes === 0) {
       buf.writeUInt8(this.bytes.length, 1)
       this.bytes.copy(buf, 2)
